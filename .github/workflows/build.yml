@@ -1,0 +1,30 @@
+name: Build and test macOS app
+on:
+  push:
+    branches: [main]
+    paths: ['Sources/**', 'Tests/**', 'Resources/**', 'Package.swift', 'Scripts/**', 'Makefile', '.github/workflows/build.yml']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: xcode-27
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Test
+        run: swift test
+      - name: Package
+        run: make package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Idasen-macOS-arm64
+          path: |
+            build/Idasen-macOS-arm64.zip
+            build/Idasen-macOS-arm64.zip.sha256
+          if-no-files-found: error
