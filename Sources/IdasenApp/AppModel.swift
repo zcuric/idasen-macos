@@ -90,6 +90,7 @@ final class AppModel: ObservableObject {
     private var cancellables: Set<AnyCancellable> = []
     private var reminderSchedule = StandingReminderSchedule()
     private var didStart = false
+    private var shouldHideInitialWindow = true
     /// `--demo` forces demo mode for this launch only.
     private var demoOverride = false
 
@@ -266,7 +267,19 @@ final class AppModel: ObservableObject {
     }
 
     func registerDeskWindow(_ window: NSWindow?) {
-        if let window { deskWindows.add(window) }
+        guard let window else { return }
+        deskWindows.add(window)
+        if settings.menuBarOnly, shouldHideInitialWindow {
+            shouldHideInitialWindow = false
+            DispatchQueue.main.async { [weak window] in window?.orderOut(nil) }
+        }
+    }
+
+    func showDeskWindow() -> Bool {
+        guard let window = deskWindows.allObjects.first else { return false }
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+        return true
     }
 
     /// Returns true when the event was consumed by the desk controls.

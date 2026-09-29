@@ -8,26 +8,7 @@ struct IdasenApp: App {
     @StateObject private var model = AppModel.shared
 
     var body: some Scene {
-        WindowGroup {
-            RootView()
-                .environmentObject(model)
-                .environmentObject(model.desk)
-                .environmentObject(model.activity)
-                .modifier(MotionPreferences(reduceMotion: model.settings.reduceMotion))
-                .preferredColorScheme(Theme.colorScheme(model.settings.theme))
-                .frame(minWidth: 940, minHeight: 640)
-                .onAppear {
-                    if CommandLine.arguments.contains("--dev-activity-fixture") {
-                        DevTools.writeActivityFixture()
-                        return
-                    }
-                    model.start()
-                    if DevTools.isSnapshotRun { DevTools.runSnapshotSequence(model: model) }
-                }
-        }
-        .defaultSize(width: 1080, height: 720)
-        .windowToolbarStyle(.unifiedCompact)
-        .commands { DeskCommands(model: model) }
+        mainWindow
 
         MenuBarExtra(isInserted: model.binding(\.showMenuBarExtra)) {
             MenuBarView()
@@ -51,9 +32,43 @@ struct IdasenApp: App {
                 .frame(width: 640, height: 560)
         }
     }
+
+    private var mainWindow: some Scene {
+        Window("Idasen", id: "main") {
+            RootView()
+                .environmentObject(model)
+                .environmentObject(model.desk)
+                .environmentObject(model.activity)
+                .modifier(MotionPreferences(reduceMotion: model.settings.reduceMotion))
+                .preferredColorScheme(Theme.colorScheme(model.settings.theme))
+                .frame(minWidth: 940, minHeight: 640)
+                .onAppear {
+                    if CommandLine.arguments.contains("--dev-activity-fixture") {
+                        DevTools.writeActivityFixture()
+                        return
+                    }
+                    model.start()
+                    if DevTools.isSnapshotRun { DevTools.runSnapshotSequence(model: model) }
+                }
+        }
+        .defaultSize(width: 1080, height: 720)
+        .windowToolbarStyle(.unifiedCompact)
+        .commands { DeskCommands(model: model) }
+    }
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        MainActor.assumeIsolated {
+            if AppModel.shared.settings.menuBarOnly {
+                NSApp.setActivationPolicy(.accessory)
+            }
+        }
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        MainActor.assumeIsolated { AppModel.shared.start() }
+    }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }
@@ -66,9 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag {
-            for window in sender.windows where window.canBecomeMain {
-                window.makeKeyAndOrderFront(nil)
-            }
+            MainActor.assumeIsolated { _ = AppModel.shared.showDeskWindow() }
         }
         return true
     }

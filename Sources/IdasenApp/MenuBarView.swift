@@ -4,6 +4,7 @@ import SwiftUI
 
 /// The menu bar popover.
 struct MenuBarView: View {
+    @Environment(\.openWindow) private var openWindow
     @EnvironmentObject private var model: AppModel
     @EnvironmentObject private var desk: DeskService
 
@@ -141,6 +142,7 @@ struct MenuBarView: View {
                     if desk.isConnected {
                         model.disconnect()
                     } else {
+                        openMainWindow()
                         NSApp.activate(ignoringOtherApps: true)
                         model.showPairing = true
                         model.startScanning()
@@ -151,10 +153,7 @@ struct MenuBarView: View {
                 Spacer()
 
                 Button("Open Idasen") {
-                    NSApp.activate(ignoringOtherApps: true)
-                    if let window = NSApp.windows.first(where: { $0.canBecomeMain }) {
-                        window.makeKeyAndOrderFront(nil)
-                    }
+                    openMainWindow()
                 }
                 .buttonStyle(ActionButtonStyle(tint: accent, compact: true))
 
@@ -167,5 +166,10 @@ struct MenuBarView: View {
                 .help("Quit Idasen")
             }
         }
+    }
+
+    private func openMainWindow() {
+        if !model.showDeskWindow() { openWindow(id: "main") }
+        NSApp.activate(ignoringOtherApps: true)
     }
 }

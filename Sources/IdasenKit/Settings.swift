@@ -145,6 +145,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     // Menu bar
     public var showMenuBarExtra: Bool = true
     public var menuBarShowsHeight: Bool = true
+    public var menuBarOnly: Bool = false
 
     // Notifications & reminders
     public var notifyOnArrival: Bool = true
@@ -194,7 +195,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case unit, heightScale, autoConnect, reconnectAutomatically, launchAtLogin
         case lastDeskID, lastName, didCompleteOnboarding
         case warmUpBeforeMoves, dpgCompatibility, nudgeStepMM, defaultMoveToleranceMM, safetyMaxRunSeconds
-        case showMenuBarExtra, menuBarShowsHeight
+        case showMenuBarExtra, menuBarShowsHeight, menuBarOnly
         case notifyOnArrival, notifyOnConnectionChanges, playSounds
         case remindersEnabled, reminderIntervalMinutes, reminderOnlyWhileSitting
         case dailyStandingGoalMinutes, sitStandThresholdMM, historyRetentionDays
@@ -220,6 +221,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         safetyMaxRunSeconds = try c.decodeIfPresent(Double.self, forKey: .safetyMaxRunSeconds) ?? defaults.safetyMaxRunSeconds
         showMenuBarExtra = try c.decodeIfPresent(Bool.self, forKey: .showMenuBarExtra) ?? defaults.showMenuBarExtra
         menuBarShowsHeight = try c.decodeIfPresent(Bool.self, forKey: .menuBarShowsHeight) ?? defaults.menuBarShowsHeight
+        menuBarOnly = try c.decodeIfPresent(Bool.self, forKey: .menuBarOnly) ?? defaults.menuBarOnly
+        if menuBarOnly { showMenuBarExtra = true }
         notifyOnArrival = try c.decodeIfPresent(Bool.self, forKey: .notifyOnArrival) ?? defaults.notifyOnArrival
         notifyOnConnectionChanges = try c.decodeIfPresent(Bool.self, forKey: .notifyOnConnectionChanges) ?? defaults.notifyOnConnectionChanges
         playSounds = try c.decodeIfPresent(Bool.self, forKey: .playSounds) ?? defaults.playSounds

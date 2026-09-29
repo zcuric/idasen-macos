@@ -1,0 +1,40 @@
+name: Release macOS app
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: xcode-27
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check tag and app version
+        run: ./Scripts/check-release-version.sh "$GITHUB_REF_NAME"
+      - name: Test
+        run: swift test
+      - name: Package
+        run: make package
+      - name: Verify package
+        run: |
+          cd build
+          shasum -a 256 -c Idasen-macOS-arm64.zip.sha256
+          unzip -tq Idasen-macOS-arm64.zip
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            build/Idasen-macOS-arm64.zip \
+            build/Idasen-macOS-arm64.zip.sha256 \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --generate-notes \
+            --title "Idasen $GITHUB_REF_NAME" \
+            --notes "Apple silicon (arm64). Ad-hoc signed; not notarized. macOS may require Open Anyway in System Settings → Privacy & Security after the first launch. Build from source with Xcode 27 if you prefer."

@@ -36,6 +36,8 @@ open build/Idasen.app
 ```
 
 `make package` creates an architecture-labelled ZIP and SHA-256 checksum in `build/`.
+A versioned tag triggers the [release workflow](RELEASE.md), which tests, packages,
+and publishes both files to GitHub Releases.
 Builds are ad-hoc signed, not Developer ID signed or notarized. Check each release's
 architecture and signing notes before downloading. macOS may ask you to approve
 opening a downloaded app in **System Settings → Privacy & Security**.
@@ -66,6 +68,9 @@ opening a downloaded app in **System Settings → Privacy & Security**.
 **Menu bar**
 
 - Optional menu bar extra showing a desk icon beside the live height (or just the icon).
+- **Run in menu bar only** in Settings → Desk → Connection; the next launch
+  starts without the main window or Dock icon. Choose **Open Idasen** from the
+  menu bar to show the main window.
 - Today’s sitting/standing totals and standing-goal progress in both the dashboard and menu.
 - Raise / lower / stop, one-click presets, connect / disconnect, open the app.
 
@@ -239,6 +244,8 @@ performed during these checks.
 - **Build and test macOS app** runs `swift test`, builds the app using the Xcode 27
   runner, and uploads an Apple silicon ZIP and checksum as workflow artifacts.
 - **Deploy website** publishes the static site to GitHub Pages on `main` changes.
+- **Release macOS app** runs on a `vX.Y.Z` tag, verifies the app version and
+  publishes the tested Apple silicon ZIP and checksum to GitHub Releases.
 - `make site` assembles `build/site` from `docs/` and the root `tokens.css`.
   Preview with `python3 -m http.server 8080 --directory build/site`.
 - Website fonts and images are self-hosted. No analytics or runtime JavaScript

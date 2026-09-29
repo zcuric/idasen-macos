@@ -551,6 +551,15 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertEqual(settings.unit, .inches)
         XCTAssertTrue(settings.demoMode)
         XCTAssertTrue(settings.autoConnect)
+        XCTAssertFalse(settings.menuBarOnly)
+    }
+
+    func testMenuBarOnlySettingPersists() throws {
+        var settings = AppSettings()
+        settings.menuBarOnly = true
+        let decoded = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
+        XCTAssertTrue(decoded.menuBarOnly)
+        XCTAssertTrue(decoded.showMenuBarExtra)
     }
 
     func testHotKeyDisplay() {

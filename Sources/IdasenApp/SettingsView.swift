@@ -284,11 +284,23 @@ struct SettingsView: View {
             LabeledRow("Menu bar") {
                 HStack(spacing: 16) {
                     Toggle("Show icon", isOn: model.binding(\.showMenuBarExtra))
+                        .disabled(model.settings.menuBarOnly)
                     Toggle("Show height", isOn: model.binding(\.menuBarShowsHeight))
                         .disabled(!model.settings.showMenuBarExtra)
                 }
                 .font(.system(size: 12))
             }
+
+            Toggle("Run in menu bar only", isOn: Binding(
+                get: { model.settings.menuBarOnly },
+                set: { enabled in
+                    if enabled { model.settings.showMenuBarExtra = true }
+                    model.settings.menuBarOnly = enabled
+                }
+            ))
+            Text("Takes effect on the next launch. Open the main window from the menu bar icon.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             LabeledRow("Saved desk") {
                 HStack(spacing: 8) {
