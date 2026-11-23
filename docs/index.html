@@ -26,11 +26,11 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<header class="wrap"><nav aria-label="Main"><a class="brand" href="./"><img src="assets/icon.png" width="36" height="36" alt="">Idasen</a><a href="https://github.com/zcuric/idasen-macos">View source ↗</a></nav></header>
+<header class="wrap"><nav aria-label="Main"><a class="brand" href="./"><img src="assets/icon.png" width="36" height="36" alt="">Idasen</a><div class="nav-links"><a href="#connect">Setup</a><a href="#resources">Resources</a><a href="#install">Download</a></div></nav></header>
 <main id="main" class="wrap">
   <section class="intro" aria-labelledby="title">
     <h1 id="title">Your standing desk.<br>From your Mac.</h1>
-    <div class="intro-copy"><p class="lede">A native macOS app for your IKEA IDÅSEN desk. Save your sitting and standing heights, change position from the menu bar, and see how your day adds up.</p><div class="actions"><a class="button" href="#install">Get Idasen ↓</a><a href="#everyday">Take a look</a></div><p class="small">macOS 14+ · Bluetooth LE · Built with SwiftUI</p></div>
+    <div class="intro-copy"><p class="lede">A native macOS app for your IKEA IDÅSEN desk. Save your sitting and standing heights, change position from the menu bar, and see how your day adds up.</p><div class="actions"><a class="button" href="#install">Get Idasen</a><a href="#connect">Connect your desk</a></div><p class="small">macOS 14+ · Native Liquid Glass on macOS 26 and later</p></div>
   </section>
   <figure><img src="assets/desk-development.png" width="1080" height="720" fetchpriority="high" alt="Idasen in demo mode at 73 centimetres, with Raise, Stop and Lower controls, Sit and Stand presets, and an exact-height slider"><figcaption>Desk controls in a development build. The current app also includes a grouped sidebar and today’s sitting and standing summary.</figcaption></figure>
   <section id="everyday" class="tour" aria-label="Everyday desk controls">
@@ -39,21 +39,48 @@
     <article><h3>A reminder you choose.</h3><p>Opt into standing reminders, choose an interval, and snooze for ten minutes when you need more time. Track a daily standing goal in the dashboard. Time is estimated from desk height while connected; it does not measure whether you’re at your desk.</p></article>
   </section>
   <section id="install" class="install" aria-labelledby="install-title">
-    <div><h2 id="install-title">Make room for a different position.</h2><p>Download the Apple silicon app, or build Idasen on your Mac. The download is ad-hoc signed and is not notarized.</p><div class="actions"><a class="button" href="https://github.com/zcuric/idasen-macos/releases/latest">Download for Mac ↗</a></div></div>
+    <div><h2 id="install-title">Make room for a different position.</h2><p>Download the Apple silicon app, or build Idasen on your Mac. The Apple silicon download is ad-hoc signed and has no Apple notarization.</p><div class="actions"><a class="button" href="https://github.com/zcuric/idasen-macos/releases/latest">Download for Mac</a></div></div>
     <div class="install-body"><h3>Build from source</h3><p>Install Xcode 27 with its command-line tools, then run:</p><pre><code>git clone https://github.com/zcuric/idasen-macos.git
 cd idasen-macos
 make app
-open build/Idasen.app</code></pre><p class="small">Requires Swift 6.4 for the verified build toolchain. Local builds are ad-hoc signed, not notarized. Packaged builds state their supported architecture and signing status.</p><p>Launch the app, wake the desk with its handset, choose <strong>Find desk</strong>, and allow Bluetooth access. A demo mode lets you explore without a desk.</p></div>
+open build/Idasen.app</code></pre><p class="small">Requires Swift 6.4 for the verified build toolchain. Local builds are ad-hoc signed, not notarized. Packaged builds state their supported architecture and signing status.</p><p>If macOS blocks the downloaded app, see <a href="https://support.apple.com/en-us/102445">Apple’s guidance for opening apps safely</a>.</p></div>
   </section>
-  <section class="faq" aria-labelledby="questions"><h2 id="questions">Before you connect.</h2>
+  <section id="connect" class="setup" aria-labelledby="setup-title">
+    <div><h2 id="setup-title">Connect your IDÅSEN.</h2><p>Use a Bluetooth-enabled electric IKEA IDÅSEN sit/stand desk. Idasen connects directly from the Mac app.</p></div>
+    <div>
+      <ol class="setup-steps">
+        <li><strong>Turn on Bluetooth.</strong> Keep your Mac near the desk. Open Idasen, click <strong>Find desk</strong>, and allow Bluetooth access when asked.</li>
+        <li><strong>Wake the handset.</strong> With the desk’s path clear, tap its physical height control. Disconnect any phone app already using the desk.</li>
+        <li><strong>Select your desk.</strong> Choose the entry named <strong>Desk</strong> or <strong>DESK-xxxxx</strong>. When the live height appears, you can save your first position.</li>
+      </ol>
+      <p>Exploring without hardware? Turn on <strong>Demo mode</strong> in Settings.</p>
+    </div>
+  </section>
+  <section class="faq" aria-labelledby="questions"><h2 id="questions">If you get stuck.</h2>
     <details><summary>Which desks work?</summary><p>Idasen is developed for the IKEA IDÅSEN Bluetooth standing desk. Other LINAK controllers may use the same protocol, but compatibility with those desks is unverified. This is an independent project, unaffiliated with IKEA or LINAK.</p></details>
     <details><summary>Where is data stored?</summary><p>Settings, presets, and desk-height history are stored locally on your Mac. The app uses CoreBluetooth to communicate directly with the desk. CSV export is available in Activity.</p></details>
     <details><summary>Are the motors faster?</summary><p>The app reduces avoidable command delays and handles Bluetooth write queues. It does not change the motor’s rated speed or expose a verified acceleration or braking setting. Manual release and Stop request an immediate stop.</p></details>
-    <details><summary>Desk not showing up?</summary><p>Wake it using the physical handset, confirm Bluetooth permission, and close any phone app connected to the desk. The controller may accept only one connection at a time. Try scanning again.</p></details>
+    <details><summary>Desk not showing up?</summary><p>Wake it using the physical handset, disconnect the desk in any phone app, and scan again close to the desk. For denied access, open <strong>System Settings → Privacy &amp; Security → Bluetooth</strong> and enable Idasen. If the handset itself cannot move the desk, start with the IKEA troubleshooting guide below.</p></details>
     <details><summary>Can I try demo mode?</summary><p>Yes. Enable demo mode in Settings to explore controls and views with a simulated desk. Simulation does not verify real hardware behaviour.</p></details>
+  </section>
+  <section id="resources" class="resources" aria-labelledby="resources-title">
+    <h2 id="resources-title">Products and guides.</h2>
+    <table aria-labelledby="resources-title">
+      <thead><tr><th scope="col">Resource</th><th scope="col">What you’ll find</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><a href="https://www.ikea.com/us/en/cat/idasen-desk-combinations-47426/">IKEA IDÅSEN desks</a></th><td>US product listings. Look for the electric sit/stand model.</td></tr>
+        <tr><th scope="row"><a href="https://www.ikea.com/hr/hr/cat/idasen-uredski-stolovi-47426/">IKEA IDÅSEN in Croatia</a></th><td>Croatian product listings and configurations.</td></tr>
+        <tr><th scope="row"><a href="https://www.ikea.com/us/en/manuals/idasen-sit-stand-underframe-for-table-top__AA-2108387-1_pub.pdf">IKEA underframe manual (PDF)</a></th><td>Installation, handset controls, Bluetooth, and operating limits.</td></tr>
+        <tr><th scope="row"><a href="https://www.ikea.com/nl/en/customer-service/knowledge/articles/gf126fd9-d4dg-4635-g741-4ed9161ebd45.html">IKEA desk troubleshooting</a></th><td>Manufacturer instructions for power, movement, and pairing problems.</td></tr>
+        <tr><th scope="row"><a href="https://www.linak.com/products/controls/desk-control-app">LINAK Desk Control</a></th><td>The controller maker’s companion app and manuals.</td></tr>
+        <tr><th scope="row"><a href="https://support.apple.com/en-bn/guide/mac-help/-mchl211c911f/mac">macOS Bluetooth permissions</a></th><td>Where to grant access after a denied prompt.</td></tr>
+        <tr><th scope="row"><a href="https://github.com/zcuric/idasen-macos/releases/latest">Idasen for macOS</a></th><td>Current download, checksum, and release notes.</td></tr>
+        <tr><th scope="row"><a href="https://github.com/zcuric/idasen-macos#readme">Idasen project documentation</a></th><td>Keyboard controls, calibration, build instructions, and Bluetooth protocol notes.</td></tr>
+      </tbody>
+    </table>
   </section>
   <aside class="support" aria-labelledby="support-title"><div><h2 id="support-title">Help keep it moving.</h2><p>Built by Zdravko. If Idasen earns a place in your menu bar, you can support its development.</p><div class="actions"><a href="https://buymeacoffee.com/zcuricy">Buy me a coffee ↗</a></div></div><a href="https://buymeacoffee.com/zcuricy"><img src="assets/support-qr.png" width="164" height="164" loading="lazy" alt="Scan to support Zdravko on Buy Me a Coffee"></a></aside>
 </main>
-<footer class="wrap"><p class="wordmark">Idasen.</p><p>A small Mac utility for a desk you already own.</p><div class="links"><a href="https://github.com/zcuric/idasen-macos">GitHub</a><a href="https://github.com/zcuric/idasen-macos/issues">Report an issue</a><a href="https://zcuric.github.io/opencode-usage/">OpenUsage</a></div><p class="small">Independent software by Zdravko Curic. IKEA and IDÅSEN are trademarks of their respective owners.</p></footer>
+<footer class="wrap"><p class="wordmark">Idasen.</p><p>A small Mac utility for a desk you already own.</p><div class="links"><a href="https://github.com/zcuric/idasen-macos">GitHub</a><a href="https://github.com/zcuric/idasen-macos/issues">Report an issue</a><a href="https://twitter.com/intent/tweet?text=Idasen%20for%20macOS%20%E2%80%94%20control%20your%20IKEA%20ID%C3%85SEN%20desk%20from%20the%20Mac%20menu%20bar.&amp;url=https%3A%2F%2Fzcuric.github.io%2Fidasen-macos%2F">Share on X</a></div><p class="small">Independent software by Zdravko Curic. IKEA and IDÅSEN are trademarks of their respective owners.</p></footer>
 </body>
 </html>

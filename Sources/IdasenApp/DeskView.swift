@@ -5,26 +5,27 @@ struct DeskView: View {
     @EnvironmentObject private var model: AppModel
     @EnvironmentObject private var desk: DeskService
 
-    @State private var targetMM: Double = AppSettings.defaultStandHeightMM
-    @State private var isEditingTarget = false
+    @State private var selectedTargetMM: Double?
     @Namespace private var actionGlass
     @Environment(\.appReduceMotion) private var reduceMotion
 
     private var accent: Color { Theme.accent(model.settings.accent) }
     private var scale: HeightScale { model.settings.heightScale }
+    private var targetMM: Double {
+        let height = selectedTargetMM ?? desk.progress?.targetMM ?? desk.heightMM ?? AppSettings.defaultStandHeightMM
+        return min(max(height, scale.minimumMM), scale.maximumMM)
+    }
 
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 16) {
                     header
-                    TodaySummaryView(activity: model.activity, model: model)
 
                     if geometry.size.width < 650 {
                         VStack(spacing: 16) {
                             heightCard
                             illustrationCard
-                            targetCard
                         }
                     } else {
                         HStack(alignment: .top, spacing: 16) {
@@ -37,7 +38,8 @@ struct DeskView: View {
                     }
 
                     presetsCard
-                    if geometry.size.width >= 650 { targetCard }
+                    targetCard
+                    TodaySummaryView(activity: model.activity, model: model)
                     hints
                 }
                 .padding(24)
@@ -45,14 +47,8 @@ struct DeskView: View {
                 .frame(maxWidth: .infinity, alignment: .top)
             }
         }
-        .onChange(of: desk.heightMM) { _, newValue in
-            guard let newValue, !isEditingTarget, desk.progress == nil else { return }
-            targetMM = newValue
-        }
-        .onAppear {
-            if let height = desk.heightMM {
-                targetMM = height
-            }
+        .onChange(of: desk.isConnected) { _, _ in
+            selectedTargetMM = nil
         }
     }
 
@@ -61,8 +57,9 @@ struct DeskView: View {
     private var header: some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
-                Text("Your workspace")
-                    .font(.system(size: 26, weight: .semibold))
+                Text("Desk")
+                    .font(.largeTitle.weight(.semibold))
+                    .accessibilityAddTraits(.isHeader)
                 Text(model.connectionTitle)
                     .font(.system(size: 12.5))
                     .foregroundStyle(.secondary)
@@ -74,7 +71,7 @@ struct DeskView: View {
                 StatusPill(text: "Demo", symbol: "sparkles", color: .purple)
             }
 
-            if desk.bluetooth != .ready, !model.isDemoMode {
+            if desk.bluetooth != .ready, desk.bluetooth != .unknown, !model.isDemoMode {
                 StatusPill(
                     text: desk.bluetooth.title,
                     symbol: desk.bluetooth.symbolName,
@@ -82,9 +79,6 @@ struct DeskView: View {
                 )
             }
 
-            if desk.isConnected {
-                StatusPill(text: "Connected", symbol: "wave.3.right", color: .green)
-            }
         }
     }
 
@@ -104,13 +98,13 @@ struct DeskView: View {
                 .equatable()
                 .frame(height: 254)
                 .opacity(desk.isConnected ? 1 : 0.42)
-                .animation(model.settings.reduceMotion ? nil : .linear(duration: 0.14), value: desk.heightMM)
-                .animation(.spring(response: 0.4, dampingFraction: 0.85), value: desk.isConnected)
+                .animation(reduceMotion ? nil : .linear(duration: 0.14), value: desk.heightMM)
 
                 if !desk.isConnected {
                     disconnectedOverlay
                 }
             }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: desk.isConnected)
         }
     }
 
@@ -119,8 +113,8 @@ struct DeskView: View {
             Image(systemName: "antenna.radiowaves.left.and.right")
                 .font(.system(size: 26, weight: .medium))
                 .foregroundStyle(accent)
-                .symbolEffect(.variableColor.iterative, isActive: true)
-            Text(desk.connection.isBusy ? "Searching for your desk…" : "Desk not connected")
+                .accessibilityHidden(true)
+            Text(desk.connection.isBusy ? model.connectionTitle : "Desk not connected")
                 .font(.system(size: 13.5, weight: .semibold))
             Text("Wake the desk with its handset, then connect over Bluetooth.")
                 .font(.system(size: 11.5))
@@ -129,13 +123,13 @@ struct DeskView: View {
             HStack(spacing: 8) {
                 Button("Find desk") {
                     model.showPairing = true
-                    model.startScanning()
                 }
                 .buttonStyle(ActionButtonStyle(tint: accent, compact: true))
 
-                if model.settings.lastDeskID != nil {
+                if model.hasSavedDesk {
                     Button("Reconnect") { model.connectSaved() }
                         .buttonStyle(ActionButtonStyle(tint: accent, filled: false, compact: true))
+                        .disabled(desk.connection.isBusy || desk.connection.isConnected)
                 }
             }
             .padding(.top, 2)
@@ -147,7 +141,7 @@ struct DeskView: View {
                 .strokeBorder(.white.opacity(0.12), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.25), radius: 18, y: 8)
-        .transition(.opacity.combined(with: .scale(scale: 0.96)))
+        .transition(.opacity)
     }
 
     // MARK: Target
@@ -165,11 +159,9 @@ struct DeskView: View {
                 }
 
                 Slider(
-                    value: Binding(get: { targetMM }, set: { targetMM = ($0 / 5).rounded() * 5 }),
+                    value: Binding(get: { targetMM }, set: { selectedTargetMM = $0 }),
                     in: scale.minimumMM...scale.maximumMM,
-                    onEditingChanged: { editing in
-                        isEditingTarget = editing
-                    }
+                    step: 5
                 )
                 .tint(accent)
                 .disabled(!desk.isConnected)
@@ -203,6 +195,7 @@ struct DeskView: View {
         HStack(spacing: 8) {
             Button {
                 model.move(toHeightMM: targetMM)
+                selectedTargetMM = nil
             } label: {
                 Label("Move desk", systemImage: "arrow.up.arrow.down")
                     .frame(maxWidth: .infinity)
@@ -248,7 +241,7 @@ struct DeskView: View {
                         .font(.system(size: 58, weight: .medium, design: .rounded))
                         .monospacedDigit()
                         .contentTransition(.numericText())
-
+                        .animation(reduceMotion || !desk.isMoving ? nil : .easeOut(duration: 0.16), value: model.heightText)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                     Text(model.unit.shortTitle)
@@ -256,6 +249,9 @@ struct DeskView: View {
                         .foregroundStyle(.secondary)
                     Spacer()
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Current desk height")
+                .accessibilityValue(desk.heightMM.map { model.unit.format(millimeters: $0) } ?? "Unavailable")
 
                 movementRow
 
@@ -349,10 +345,20 @@ struct DeskView: View {
             Spacer()
 
             if let progress = desk.progress {
-                Text("→ \(model.unit.format(millimeters: progress.targetMM))")
+                Text("To \(model.unit.format(millimeters: progress.targetMM))")
                     .font(.caption)
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.bottom, 5)
+        .overlay(alignment: .bottom) {
+            if let progress = desk.progress {
+                ProgressView(value: progress.fraction)
+                    .tint(accent)
+                    .controlSize(.mini)
+                    .offset(y: 4)
+                    .accessibilityLabel("Moving to \(model.unit.format(millimeters: progress.targetMM))")
             }
         }
     }

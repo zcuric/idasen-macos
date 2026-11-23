@@ -145,7 +145,6 @@ struct MenuBarView: View {
                         openMainWindow()
                         NSApp.activate(ignoringOtherApps: true)
                         model.showPairing = true
-                        model.startScanning()
                     }
                 }
                 .buttonStyle(ActionButtonStyle(tint: .secondary, filled: false, compact: true))

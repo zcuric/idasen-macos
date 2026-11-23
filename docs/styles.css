@@ -65,6 +65,23 @@ footer .links { display: flex; flex-wrap: wrap; gap: var(--space-lg); }
 
 a:active, summary:active { color: var(--color-accent); }
 a[aria-disabled="true"], summary[aria-disabled="true"] { opacity: .5; pointer-events: none; }
-summary { white-space: nowrap; }
+
 footer .links { align-items: center; }
 nav a, .actions a, footer a { line-height: 1; }
+
+.nav-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 clamp(.75rem, 3vw, 2rem); }
+.setup { display: grid; gap: var(--space-lg); padding-block: var(--space-2xl); border-bottom: var(--rule-width) solid var(--color-rule); }
+.setup-steps { margin: 0; padding-inline-start: 1.5rem; }
+.setup-steps li { padding-inline-start: .45rem; }
+.setup-steps li + li { margin-top: var(--space-md); }
+.setup-steps li::marker { color: var(--color-accent); font-weight: 600; }
+.faq { padding-bottom: var(--space-2xl); }
+.resources { padding-bottom: var(--space-3xl); }
+.resources table { width: 100%; border-collapse: collapse; margin-top: var(--space-lg); }
+.resources th, .resources td { text-align: start; vertical-align: top; padding: .8rem .65rem; border-bottom: var(--rule-width) solid var(--color-rule); }
+.resources thead { background: var(--color-surface); }
+.resources tbody th { width: 39%; font-weight: 500; }
+.resources td { color: var(--color-muted); }
+@media (min-width: 60rem) {
+  .setup { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: var(--space-2xl); }
+}

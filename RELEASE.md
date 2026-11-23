@@ -37,3 +37,23 @@ unzip -tq Idasen-macOS-arm64.zip
 
 A failed job does not publish a release. Fix the problem in a new commit and
 use a new tag; published tags remain fixed.
+
+## Launch checklist
+
+| Area | Included in v1.1.0 | Follow-up |
+| --- | --- | --- |
+| First run | Guided connection, scan and retry, Bluetooth permission guidance, and one-click demo | Verify first pairing, denied access recovery, and reconnect with a physical IDÅSEN. |
+| Desk controls | Live controls first, rolling height readout, visible move progress, and a target that stays put after editing | Check stop and release on real hardware. Verify height calibration with a tape measure. |
+| macOS interface | Native split view and toolbar, system sheet, and motion that follows the app and system Reduce Motion preferences | Tour the app with VoiceOver and keyboard-only navigation. Check increased contrast and reduced transparency on macOS 14 and macOS 26 or later. |
+| Feature backlog | Presets, menu bar controls, history and CSV, reminders, and keyboard shortcuts are available | Validate controller variants before broadening compatibility. Explore App Shortcuts for opening the dashboard and viewing height. |
+| Distribution | Apple silicon ZIP and SHA-256 workflow | Test the downloaded ZIP in a fresh macOS account. For a notarized release, use a Developer ID Application certificate, Hardened Runtime, and a configured notarytool keychain profile. [Apple’s distribution guide](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution/) |
+| Website and X | GitHub Pages, connection guide, reference table, X card, and share link | Verify the public download and social preview, then post the announcement from the project owner’s X account. [X announcement](PROMOTION.md) |
+
+### macOS design references
+
+| Topic | Reference |
+| --- | --- |
+| System navigation and controls | [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) |
+| Custom control surfaces | [Applying Liquid Glass to custom views](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) |
+| Animation and accessibility | [Apple Human Interface Guidelines for motion](https://developer.apple.com/design/human-interface-guidelines/motion) |
+| Download verification | [Packaging Mac software for distribution](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution) |

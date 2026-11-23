@@ -101,8 +101,9 @@ final class AppModel: ObservableObject {
         activity = ActivityRecorder(directory: directory)
         if DevTools.isSnapshotRun {
             var preview = AppSettings()
-            preview.demoMode = true
-            preview.didCompleteOnboarding = true
+            let showSetup = CommandLine.arguments.contains("--dev-setup")
+            preview.demoMode = !showSetup
+            preview.didCompleteOnboarding = !showSetup
             preview.notifyOnArrival = false
             preview.showMenuBarExtra = false
             preview.theme = DevTools.argumentValue("--dev-theme").flatMap(AppTheme.init(rawValue:)) ?? .light
@@ -125,6 +126,7 @@ final class AppModel: ObservableObject {
     var standPreset: DeskPreset? { presetStore.standPreset }
 
     var isDemoMode: Bool { settings.demoMode }
+    var hasSavedDesk: Bool { !isDemoMode && BluetoothDeskLink.hasSavedDesk }
 
     var connectionTitle: String {
         switch desk.connection {
@@ -213,7 +215,7 @@ final class AppModel: ObservableObject {
         applySettings(changedFrom: nil, to: settings)
         if !DevTools.isSnapshotRun { startReminderTimer() }
 
-        desk.connectIfConfigured()
+        if isDemoMode || (!DevTools.isSnapshotRun && hasSavedDesk) { desk.connectIfConfigured() }
 
         if !settings.didCompleteOnboarding {
             showPairing = true
@@ -426,7 +428,6 @@ final class AppModel: ObservableObject {
     func connectSaved() {
         if !desk.connectSavedDesk() {
             showPairing = true
-            desk.startScanning()
         }
     }
 
@@ -437,7 +438,6 @@ final class AppModel: ObservableObject {
     func forgetDesk() {
         desk.forgetDesk()
         showPairing = true
-        desk.startScanning()
     }
 
     func startScanning() {

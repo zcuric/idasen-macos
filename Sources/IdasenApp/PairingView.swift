@@ -2,211 +2,207 @@ import AppKit
 import IdasenKit
 import SwiftUI
 
-// MARK: - Pairing sheet
-
 struct PairingSheet: View {
     @EnvironmentObject private var model: AppModel
     @EnvironmentObject private var desk: DeskService
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.appReduceMotion) private var reduceMotion
+
+    @State private var attemptedScan = false
 
     private var accent: Color { Theme.accent(model.settings.accent) }
+    private var scanning: Bool { desk.connection == .scanning }
+    private var connecting: Bool { desk.connection.isBusy && !scanning || desk.connection.isConnected }
+    private var bluetoothBlocked: Bool {
+        guard !model.isDemoMode else { return false }
+        return [.poweredOff, .unauthorized, .unsupported].contains(desk.bluetooth)
+    }
 
     private var visibleDesks: [DiscoveredDesk] {
         model.showAllDevices ? desk.discovered : desk.discovered.filter(\.isIdasen)
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider().opacity(0.5)
-            content
-            Divider().opacity(0.5)
-            footer
+        VStack(alignment: .leading, spacing: 0) {
+            header.padding(24)
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    if !model.isDemoMode { instructions }
+                    discovery
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Divider()
+            footer.padding(20)
         }
-        .frame(width: 480, height: 560)
-        .background(.regularMaterial)
-        .onAppear {
-            if !desk.connection.isBusy, !desk.isConnected {
-                model.startScanning()
+        .frame(width: 540, height: 590)
+        .tint(accent)
+        .onChange(of: desk.isConnected, initial: true) { _, connected in
+            if connected {
+                model.settings.didCompleteOnboarding = true
+                dismiss()
             }
         }
-        .onChange(of: desk.isConnected) { _, connected in
-            if connected { dismiss() }
+        .onDisappear {
+            if scanning { model.stopScanning() }
+        }
+        .task(id: scanning) {
+            guard scanning else { return }
+            do {
+                try await Task.sleep(for: .seconds(15))
+                if scanning { model.stopScanning() }
+            } catch is CancellationError {
+                return
+            } catch {
+                return
+            }
         }
     }
 
     private var header: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Theme.gradient(accent))
-                    .frame(width: 38, height: 38)
-                Image(systemName: "antenna.radiowaves.left.and.right")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Connect your desk")
-                    .font(.system(size: 15, weight: .semibold))
-                Text("Press a button on the desk to wake it up first.")
-                    .font(.system(size: 11.5))
+        HStack(spacing: 14) {
+            Image(systemName: model.isDemoMode ? "table.furniture" : "antenna.radiowaves.left.and.right")
+                .font(.title2.weight(.medium))
+                .foregroundStyle(accent)
+                .frame(width: 46, height: 46)
+                .background(accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 13))
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(model.isDemoMode ? "Connect to a demo desk" : "Connect your IDÅSEN")
+                    .font(.title2.weight(.semibold))
+                    .accessibilityAddTraits(.isHeader)
+                Text(model.isDemoMode ? "Explore height controls with a simulated desk." : "Connect directly from Idasen over Bluetooth.")
                     .foregroundStyle(.secondary)
             }
-            Spacer()
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 18))
-                    .foregroundStyle(.tertiary)
-            }
-            .buttonStyle(.plain)
-            .help("Close")
         }
-        .padding(16)
     }
 
-    @ViewBuilder
-    private var content: some View {
-        if desk.isConnected {
-            VStack(spacing: 12) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 44))
-                    .foregroundStyle(.green)
-                Text("Connected to \(desk.connectedDeskName ?? "desk")")
-                    .font(.headline)
+    private var instructions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            step("Turn on Bluetooth", detail: "Keep your Mac near the desk. Allow Bluetooth access when macOS asks.", symbol: "laptopcomputer")
+            step("Wake the desk", detail: "Tap its physical height control. Disconnect any phone app already connected to the desk.", symbol: "hand.tap")
+            step("Choose your desk", detail: "Click Find desk, then select the entry named Desk or DESK-xxxxx.", symbol: "table.furniture")
+            Link("IKEA setup and troubleshooting", destination: URL(string: "https://zcuric.github.io/idasen-macos/#connect")!)
+        }
+    }
+
+    private func step(_ title: String, detail: String, symbol: String) -> some View {
+        Label {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).fontWeight(.semibold)
+                Text(detail).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if visibleDesks.isEmpty {
-            scanningState
-        } else {
-            ScrollView {
-                LazyVStack(spacing: 8) {
+        } icon: {
+            Image(systemName: symbol)
+                .foregroundStyle(accent)
+                .frame(width: 21)
+                .accessibilityHidden(true)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var discovery: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if connecting {
+                HStack(spacing: 9) {
+                    ProgressView().controlSize(.small).accessibilityHidden(true)
+                    Text(desk.connection.deskName.map { "Connecting to \($0)…" } ?? "Reconnecting…")
+                }
+            } else if bluetoothBlocked {
+                bluetoothHelp
+            } else {
+                if scanning || attemptedScan || !visibleDesks.isEmpty {
+                    Label(discoveryTitle, systemImage: "dot.radiowaves.left.and.right")
+                        .symbolEffect(.pulse, options: .repeating, isActive: scanning && !reduceMotion)
+                        .font(.subheadline.weight(.semibold))
+                }
+
+                if !visibleDesks.isEmpty {
                     ForEach(visibleDesks) { discovered in
-                        DeviceRow(discovered: discovered, accent: accent) {
+                        Button {
                             model.connect(to: discovered)
-                        } isBusy: {
-                            if case .connecting(let name) = desk.connection, name == discovered.name { return true }
-                            return false
+                        } label: {
+                            HStack {
+                                Label(discovered.name, systemImage: discovered.isIdasen ? "table.furniture" : "antenna.radiowaves.left.and.right")
+                                Spacer()
+                                SignalBars(bars: discovered.signalBars, color: .secondary)
+                                    .accessibilityHidden(true)
+                            }
+                            .padding(8)
+                            .frame(maxWidth: .infinity)
                         }
+                        .buttonStyle(.bordered)
+                        .accessibilityHint("Connect to this device")
                     }
                 }
-                .padding(14)
+
+                if case .failed(let message) = desk.connection {
+                    Text(message).foregroundStyle(.secondary)
+                }
+
+                if attemptedScan, !model.isDemoMode {
+                    Toggle("Show all Bluetooth devices", isOn: $model.showAllDevices)
+                        .toggleStyle(.checkbox)
+                }
             }
         }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: scanning)
     }
 
-    private var scanningState: some View {
-        VStack(spacing: 18) {
-            ZStack {
-                ForEach(0..<3, id: \.self) { index in
-                    Circle()
-                        .stroke(accent.opacity(0.35), lineWidth: 1.5)
-                        .frame(width: 60, height: 60)
-                        .scaleEffect(1 + CGFloat(index) * 0.62)
-                        .opacity(0.9 - Double(index) * 0.28)
-                }
-                Circle()
-                    .fill(accent.opacity(0.16))
-                    .frame(width: 60, height: 60)
-                Image(systemName: "table.furniture")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(accent)
-                    .symbolEffect(.pulse, options: .repeating)
-            }
-            .frame(height: 160)
+    private var discoveryTitle: String {
+        if scanning { return "Looking for nearby desks…" }
+        return visibleDesks.isEmpty ? "No desks found. Wake the handset and scan again." : "Nearby devices"
+    }
 
-            VStack(spacing: 6) {
-                Text("Searching for nearby desks…")
-                    .font(.system(size: 13.5, weight: .semibold))
-                Text("IDÅSEN desks advertise themselves as “Desk”.\nTap a desk button to wake the controller.")
-                    .font(.system(size: 11.5))
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-            }
+    private var bluetoothHelp: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(desk.bluetooth.title, systemImage: desk.bluetooth.symbolName)
+                .font(.subheadline.weight(.semibold))
 
-            if let id = model.settings.lastDeskID {
-                Button {
-                    model.connectSaved()
-                } label: {
-                    Label("Reconnect to \(model.settings.lastName ?? "saved desk")", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(ActionButtonStyle(tint: accent, filled: false, compact: true))
-                .help("Reconnect using the saved Bluetooth identifier \(id.uuidString.prefix(8))…")
+            switch desk.bluetooth {
+            case .poweredOff:
+                Text("Turn on Bluetooth in Control Center, then click Find desk.")
+            case .unauthorized:
+                Text("In System Settings › Privacy & Security › Bluetooth, allow Idasen. Reopen the app if macOS asks you to.")
+            case .unsupported:
+                Text("This Mac can still run the simulated desk in Demo mode.")
+            default:
+                EmptyView()
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private var footer: some View {
-        HStack(spacing: 12) {
-            Toggle("Show all Bluetooth devices", isOn: $model.showAllDevices)
-                .toggleStyle(.checkbox)
-                .font(.system(size: 11.5))
-
+        HStack(spacing: 10) {
+            if !model.isDemoMode && !connecting {
+                Button("Try demo") {
+                    if scanning { model.stopScanning() }
+                    model.settings.demoMode = true
+                    model.connectSaved()
+                }
+            }
             Spacer()
-
-            Button {
-                model.startScanning()
-            } label: {
-                Label("Scan again", systemImage: "arrow.clockwise")
+            Button(connecting ? "Close" : "Not now") {
+                model.settings.didCompleteOnboarding = true
+                dismiss()
             }
-            .buttonStyle(ActionButtonStyle(tint: accent, filled: false, compact: true))
-            .disabled(desk.connection.isBusy)
-        }
-        .padding(14)
-    }
-}
+            .keyboardShortcut(.cancelAction)
 
-struct DeviceRow: View {
-    var discovered: DiscoveredDesk
-    var accent: Color
-    var connect: () -> Void
-    var isBusy: () -> Bool
-
-    var body: some View {
-        Button(action: connect) {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .fill(
-                            discovered.isIdasen
-                                ? AnyShapeStyle(Theme.gradient(accent))
-                                : AnyShapeStyle(Color.primary.opacity(0.08))
-                        )
-                    Image(systemName: discovered.isIdasen ? "table.furniture" : "dot.radiowaves.left.and.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(discovered.isIdasen ? .white : .secondary)
+            if scanning {
+                Button("Stop scan") { model.stopScanning() }
+            } else {
+                Button(attemptedScan ? "Scan again" : "Find desk") {
+                    attemptedScan = true
+                    model.startScanning()
                 }
-                .frame(width: 34, height: 34)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(discovered.name)
-                        .font(.system(size: 13, weight: .semibold))
-                    Text(discovered.isIdasen ? "IKEA IDÅSEN controller" : "Bluetooth device")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                SignalBars(bars: discovered.signalBars, color: .secondary)
-                if isBusy() {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.tertiary)
-                }
+                .buttonStyle(.borderedProminent)
+                .disabled(connecting || (!model.isDemoMode && desk.bluetooth == .unsupported))
             }
-            .padding(10)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.primary.opacity(0.05))
-            )
-            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        .buttonStyle(.plain)
-        .hoverLift(scale: 1.008, offset: 0)
     }
 }
 

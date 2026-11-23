@@ -97,10 +97,7 @@ struct RootView: View {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: 200, ideal: 216, max: 260)
         } detail: {
-            ZStack {
-                AmbientBackground(accent: Theme.accent(model.settings.accent))
-                detail
-            }
+            detail
         }
         .background(DeskWindowReader { model.registerDeskWindow($0) })
         .overlay(alignment: .top) { BannerView() }
@@ -195,7 +192,6 @@ private struct DeskToolbar: ToolbarContent {
                     model.disconnect()
                 } else {
                     model.showPairing = true
-                    model.startScanning()
                 }
             } label: {
                 Label(
@@ -295,6 +291,10 @@ struct DeskCommands: Commands {
         CommandGroup(after: .sidebar) {
             NavigationMenuItems(model: model)
         }
+
+        CommandGroup(after: .help) {
+            Link("IDÅSEN Setup Guide", destination: URL(string: "https://zcuric.github.io/idasen-macos/#connect")!)
+        }
     }
 }
 
@@ -339,7 +339,6 @@ struct DeskMenuItems: View {
                     model.disconnect()
                 } else {
                     model.showPairing = true
-                    model.startScanning()
                 }
             }
         }

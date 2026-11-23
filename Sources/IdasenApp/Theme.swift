@@ -79,26 +79,6 @@ struct VisualEffectView: NSViewRepresentable {
 }
 
 /// A quiet accent wash behind the content.
-struct AmbientBackground: View {
-    var accent: Color
-
-    var body: some View {
-        ZStack {
-            VisualEffectView(material: .underWindowBackground)
-            LinearGradient(
-                colors: [
-                    accent.opacity(0.09),
-                    accent.opacity(0.015),
-                    .clear,
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
-        .ignoresSafeArea()
-    }
-}
-
 // MARK: - Cards
 
 struct ContentCard<Content: View>: View {

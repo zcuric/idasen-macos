@@ -53,7 +53,6 @@ struct ConnectionFooter: View {
                 if !desk.isConnected {
                     Button {
                         model.showPairing = true
-                        model.startScanning()
                     } label: {
                         Image(systemName: "plus")
                     }

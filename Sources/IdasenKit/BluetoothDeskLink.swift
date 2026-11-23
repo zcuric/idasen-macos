@@ -171,6 +171,15 @@ public final class BluetoothDeskLink: NSObject, DeskLink {
     private static let savedIDKey = "savedDeskIdentifier"
     private static let savedNameKey = "savedDeskName"
 
+    public static var hasSavedDesk: Bool {
+        UserDefaults.standard.string(forKey: savedIDKey).flatMap(UUID.init(uuidString:)) != nil
+    }
+
+    public static var savedDeskName: String? {
+        guard hasSavedDesk else { return nil }
+        return UserDefaults.standard.string(forKey: savedNameKey) ?? "Desk"
+    }
+
     private var central: CBCentralManager!
     private var peripheral: CBPeripheral?
     private var connectedPeripheral: CBPeripheral? {
@@ -280,6 +289,7 @@ public final class BluetoothDeskLink: NSObject, DeskLink {
         wantsConnection = true
         state = .connecting(name: name)
         pendingConnectName = name
+        startConnectTimeout()
         central.scanForPeripherals(
             withServices: nil,
             options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
@@ -288,6 +298,7 @@ public final class BluetoothDeskLink: NSObject, DeskLink {
     }
 
     public func disconnect() {
+        connectTimeoutTimer?.invalidate()
         wantsConnection = false
         pendingConnectName = nil
         stopScan()
@@ -321,12 +332,15 @@ public final class BluetoothDeskLink: NSObject, DeskLink {
         connectTimeoutTimer?.invalidate()
         connectTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 15, repeats: false) { [weak self] _ in
             Task { @MainActor in
-                guard let self, !self.state.isConnected else { return }
+                guard let self, case .connecting = self.state else { return }
+                self.wantsConnection = false
                 if let peripheral = self.peripheral {
                     self.central.cancelPeripheralConnection(peripheral)
                 }
+                self.pendingConnectName = nil
+                self.stopScan()
                 self.delegate?.link(self, didFail: .deskNotFound)
-                self.state = .idle
+                self.state = .failed("Desk not found. Wake the handset and try again.")
             }
         }
     }
@@ -514,12 +528,15 @@ extension BluetoothDeskLink: @MainActor CBCentralManagerDelegate {
                 connectSaved()
             }
         case .poweredOff:
+            stopScan()
             availability = .poweredOff
             resetCharacteristics()
             state = .idle
         case .unauthorized:
+            stopScan()
             availability = .unauthorized
         case .unsupported:
+            stopScan()
             availability = .unsupported
         case .resetting:
             availability = .unknown
@@ -582,6 +599,7 @@ extension BluetoothDeskLink: @MainActor CBCentralManagerDelegate {
             // The controller dropped out; the owner decides how to retry.
             delegate?.link(self, didFail: .connectionLost)
         }
+        if case .failed = state { return }
         state = .idle
     }
 }

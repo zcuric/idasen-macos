@@ -304,10 +304,10 @@ struct SettingsView: View {
 
             LabeledRow("Saved desk") {
                 HStack(spacing: 8) {
-                    Text(model.settings.lastName ?? "None")
+                    Text(model.hasSavedDesk ? BluetoothDeskLink.savedDeskName ?? "Desk" : "None")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
-                    if model.settings.lastDeskID != nil {
+                    if model.hasSavedDesk {
                         Button("Forget") { model.forgetDesk() }
                             .buttonStyle(ActionButtonStyle(tint: .red, filled: false, compact: true))
                     }

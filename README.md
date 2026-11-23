@@ -107,18 +107,16 @@ opening a downloaded app in **System Settings → Privacy & Security**.
 
 ## Using it with a real desk
 
-1. Launch Idasen and click **Find desk** (the pairing sheet opens on first run).
-2. Press any button on the desk to wake its controller — an IDÅSEN controller
-   sleeps when idle and only advertises for a while after being touched.
-3. Pick the device called **Desk** in the list. macOS asks for Bluetooth
-   permission the first time; the app never needs pairing in System Settings.
+1. Turn on Bluetooth and place your Mac near your Bluetooth-enabled IKEA IDÅSEN sit/stand desk.
+2. With the desk’s path clear, tap the physical height control to wake the handset. Disconnect any phone app already using the desk.
+3. Open Idasen, choose **Find desk**, and allow Bluetooth access when asked. Select **Desk** or **DESK-xxxxx** in Idasen. The live height appears once the controller is ready.
 
-Notes and troubleshooting:
+If you previously denied access, open **System Settings › Privacy & Security › Bluetooth** and enable Idasen. If the desk is missing, wake the handset again and choose **Scan again**. To explore without hardware, use **Try demo** in setup and turn **Demo mode** off in Settings when you’re ready to connect a real desk. See the [setup guide and product resources](https://zcuric.github.io/idasen-macos/#connect).
 
-- The desk accepts a single connection at a time. Quit the IKEA app (or your
-  phone) if it is holding the connection.
-- If heights look shifted by a constant amount, use
-  **Settings › Desk › Calibrate…** and enter the height you measure with a tape.
+Notes and troubleshooting
+
+- If the physical handset itself cannot move the desk, follow [IKEA’s troubleshooting instructions](https://www.ikea.com/nl/en/customer-service/knowledge/articles/gf126fd9-d4dg-4635-g741-4ed9161ebd45.html).
+- If heights look shifted by a constant amount, use **Settings › Desk › Calibrate…** and enter the measured height.
 - The busier `99fa0002` command channel is used for holding raise/lower; exact
   moves use the reference-input channel (`99fa0031`) at 10 Hz, which the desk
   treats as an absolute target. The wake-up + stop preflight that arms that
@@ -185,6 +183,7 @@ Developer flags (used by the UI review workflow in this repo):
 | `--dev-tab desk\|presets\|activity\|settings` | Select a sidebar tab for the snapshot |
 | `--dev-theme light\|dark\|system` | Appearance for an isolated snapshot |
 | `--dev-size 940x640` | Preview window size (minimum 940 × 640) |
+| `--dev-setup` | Open the first-run connection sheet with isolated settings and no automatic Bluetooth scan |
 | `--dev-moving` | Start a simulated move before the snapshot |
 | `--dev-quit` | Flush preview data and exit after snapshotting |
 | `--dev-activity-fixture` | Write 21 days of synthetic activity, then exit |
@@ -255,7 +254,7 @@ performed during these checks.
   after verifying ownership. A project-level `robots.txt` would not control
   crawling of the `zcuric.github.io` host, so none is added here.
 
-See [the X launch draft](PROMOTION.md). Search rankings and rich results are not guaranteed.
+See the [launch checklist](RELEASE.md#launch-checklist) and [X announcement](PROMOTION.md).
 
 ## Support development
 
