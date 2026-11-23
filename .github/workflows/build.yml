@@ -25,6 +25,8 @@ jobs:
         with:
           name: Idasen-macOS-arm64
           path: |
+            build/Idasen-macOS-arm64.dmg
+            build/Idasen-macOS-arm64.dmg.sha256
             build/Idasen-macOS-arm64.zip
             build/Idasen-macOS-arm64.zip.sha256
           if-no-files-found: error

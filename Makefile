@@ -32,7 +32,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 .PHONY: package site
-## Package this Mac's architecture, with a SHA-256 checksum.
+## Package this Mac's architecture as a DMG and a ZIP with SHA-256 checksums.
 package: icon
 	./Scripts/package-app.sh
 

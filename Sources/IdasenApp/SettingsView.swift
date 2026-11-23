@@ -7,6 +7,7 @@ struct SettingsDetailView: View {
         ScrollView {
             SettingsView()
                 .padding(24)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
@@ -63,7 +64,8 @@ struct SettingsView: View {
             if !compact {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Settings")
-                        .font(.system(size: 26, weight: .semibold))
+                        .font(.largeTitle.weight(.semibold))
+                        .accessibilityAddTraits(.isHeader)
                     Text("Units, desk limits, reminders, shortcuts and diagnostics.")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)

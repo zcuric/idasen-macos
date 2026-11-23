@@ -18,7 +18,6 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("Idasen")
         .safeAreaInset(edge: .bottom, spacing: 0) {
             ConnectionFooter()
                 .padding(16)

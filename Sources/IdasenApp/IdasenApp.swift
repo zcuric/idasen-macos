@@ -52,7 +52,7 @@ struct IdasenApp: App {
                 }
         }
         .defaultSize(width: 1080, height: 720)
-        .windowToolbarStyle(.unifiedCompact)
+        .windowToolbarStyle(.unified(showsTitle: false))
         .commands { DeskCommands(model: model) }
     }
 }
@@ -91,25 +91,60 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 struct RootView: View {
     @EnvironmentObject private var model: AppModel
+    @SceneStorage("deskSidebarVisible") private var sidebarVisible = true
 
     var body: some View {
-        NavigationSplitView {
-            SidebarView()
-                .navigationSplitViewColumnWidth(min: 200, ideal: 216, max: 260)
-        } detail: {
-            detail
-        }
-        .background(DeskWindowReader { model.registerDeskWindow($0) })
-        .overlay(alignment: .top) { BannerView() }
-        .toolbar { DeskToolbar(model: model, desk: model.desk) }
-        .sheet(isPresented: $model.showPairing) {
-            PairingSheet()
-        }
-        .sheet(isPresented: $model.showEditor) {
-            PresetEditorSheet(preset: model.editorPreset)
-        }
-        .sheet(isPresented: $model.showCalibration) {
-            CalibrationSheet()
+        workspace
+            .background(DeskWindowReader { model.registerDeskWindow($0) })
+            .overlay(alignment: .top) { BannerView() }
+            .toolbar {
+                if #available(macOS 26, *) {
+                    ToolbarItem(placement: .navigation) {
+                        Button {
+                            sidebarVisible.toggle()
+                        } label: {
+                            Label(sidebarVisible ? "Hide Sidebar" : "Show Sidebar", systemImage: "sidebar.left")
+                        }
+                        .buttonStyle(.bordered)
+                        .keyboardShortcut("s", modifiers: [.command, .control])
+                    }
+                    ToolbarSpacer(.flexible, placement: .primaryAction)
+                }
+                DeskToolbar(model: model, desk: model.desk)
+            }
+            .sheet(isPresented: $model.showPairing) {
+                PairingSheet()
+            }
+            .sheet(isPresented: $model.showEditor) {
+                PresetEditorSheet(preset: model.editorPreset)
+            }
+            .sheet(isPresented: $model.showCalibration) {
+                CalibrationSheet()
+            }
+    }
+
+    @ViewBuilder
+    private var workspace: some View {
+        if #available(macOS 26, *) {
+            DeskSplitView(
+                sidebarVisible: sidebarVisible,
+                sidebar: SidebarView()
+                    .scrollContentBackground(.hidden)
+                    .clipShape(.rect(cornerRadius: 16))
+                    .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                    .padding(.leading, 12)
+                    .padding(.trailing, 4)
+                    .padding(.vertical, 8),
+                detail: detail
+            )
+            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        } else {
+            NavigationSplitView {
+                SidebarView()
+                    .navigationSplitViewColumnWidth(min: 200, ideal: 216, max: 260)
+            } detail: {
+                detail
+            }
         }
     }
 
@@ -148,6 +183,7 @@ private final class DeskWindowTrackingView: NSView {
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
+        window?.titlebarSeparatorStyle = .none
         onWindowChange?(window)
     }
 }
@@ -171,6 +207,7 @@ private struct DeskToolbar: ToolbarContent {
                     } label: {
                         Label("Stop", systemImage: "stop.fill")
                     }
+                    .buttonStyle(.bordered)
                     .help("Stop the desk (space or ⌘.)")
                     .accessibilityLabel("Stop the desk")
                 }
@@ -183,6 +220,7 @@ private struct DeskToolbar: ToolbarContent {
                         systemImage: model.sitStandState == .standing ? "chair.lounge.fill" : "figure.stand"
                     )
                 }
+                .buttonStyle(.bordered)
                 .disabled(desk.isMoving)
                 .help(model.sitStandState == .standing ? "Move to the sit preset (⇧⌘T)" : "Move to the stand preset (⇧⌘T)")
             }
@@ -199,6 +237,7 @@ private struct DeskToolbar: ToolbarContent {
                     systemImage: desk.isConnected ? "bolt.horizontal.circle" : "antenna.radiowaves.left.and.right"
                 )
             }
+            .buttonStyle(.bordered)
             .help(desk.isConnected ? "Disconnect from the desk" : "Find your desk over Bluetooth")
             .accessibilityLabel(desk.isConnected ? "Disconnect from desk" : "Connect to desk")
         }
