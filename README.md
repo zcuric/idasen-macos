@@ -19,7 +19,7 @@ swift run Idasen --demo   # explore the UI without a desk
 
 Requires macOS 14+. Build with Xcode 27 / Swift 6.4; all targets use Swift 6 language mode and checked concurrency. Native glass controls are available on macOS 26 and later.
 
-[![Idasen desk controls in a development build](docs/assets/desk-development.png)](https://zcuric.github.io/idasen-macos/)
+[![Idasen in dark mode on macOS 27](docs/assets/desk-macos.png)](https://zcuric.github.io/idasen-macos/)
 
 *Development capture in demo mode. The current app also includes a grouped sidebar and Today summaries.*
 
@@ -35,7 +35,9 @@ make app
 open build/Idasen.app
 ```
 
-`make package` creates an architecture-labelled ZIP and SHA-256 checksum in `build/`.
+[Download the Apple silicon DMG](https://github.com/zcuric/idasen-macos/releases/latest/download/Idasen-macOS-arm64.dmg), open it, and drag Idasen into Applications.
+
+`make package` creates an architecture-labelled DMG and ZIP with SHA-256 checksums in `build/`.
 A versioned tag triggers the [release workflow](RELEASE.md), which tests, packages,
 and publishes both files to GitHub Releases.
 Builds are ad-hoc signed, not Developer ID signed or notarized. Check each release's
@@ -241,10 +243,10 @@ performed during these checks.
 ## Automation and website
 
 - **Build and test macOS app** runs `swift test`, builds the app using the Xcode 27
-  runner, and uploads an Apple silicon ZIP and checksum as workflow artifacts.
+  runner, and uploads Apple silicon DMG and ZIP files with checksums as workflow artifacts.
 - **Deploy website** publishes the static site to GitHub Pages on `main` changes.
 - **Release macOS app** runs on a `vX.Y.Z` tag, verifies the app version and
-  publishes the tested Apple silicon ZIP and checksum to GitHub Releases.
+  publishes the tested Apple silicon DMG and ZIP with checksums to GitHub Releases.
 - `make site` assembles `build/site` from `docs/` and the root `tokens.css`.
   Preview with `python3 -m http.server 8080 --directory build/site`.
 - Website fonts and images are self-hosted. No analytics or runtime JavaScript

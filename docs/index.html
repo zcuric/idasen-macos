@@ -12,16 +12,16 @@
   <meta property="og:description" content="A native macOS controller for IKEA IDÅSEN. Save heights, move from the menu bar, and make room for a standing break.">
   <meta property="og:url" content="https://zcuric.github.io/idasen-macos/">
   <meta property="og:site_name" content="Idasen for macOS">
-  <meta property="og:image" content="https://zcuric.github.io/idasen-macos/assets/desk-development.png">
-  <meta property="og:image:alt" content="Idasen development build showing desk height, movement controls and saved positions in demo mode">
+  <meta property="og:image" content="https://zcuric.github.io/idasen-macos/assets/desk-macos.png">
+  <meta property="og:image:alt" content="Idasen in dark mode with an inset Liquid Glass sidebar, live desk height, movement controls, and saved positions">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Idasen for macOS — IKEA standing desk control">
   <meta name="twitter:description" content="Bluetooth presets, menu bar controls, sitting and standing stats, and optional reminders. Built with SwiftUI.">
-  <meta name="twitter:image" content="https://zcuric.github.io/idasen-macos/assets/desk-development.png">
+  <meta name="twitter:image" content="https://zcuric.github.io/idasen-macos/assets/desk-macos.png">
   <link rel="icon" href="assets/icon.png" type="image/png">
   <link rel="stylesheet" href="styles.css">
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Idasen for macOS","url":"https://zcuric.github.io/idasen-macos/","description":"Native macOS Bluetooth controller for IKEA IDÅSEN standing desks, with height presets, menu bar controls, activity estimates and optional standing reminders.","operatingSystem":"macOS 14 or later","applicationCategory":"UtilitiesApplication","author":{"@type":"Person","name":"Zdravko Curic","url":"https://github.com/zcuric"},"sameAs":"https://github.com/zcuric/idasen-macos","image":"https://zcuric.github.io/idasen-macos/assets/desk-development.png","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Idasen for macOS","url":"https://zcuric.github.io/idasen-macos/","description":"Native macOS Bluetooth controller for IKEA IDÅSEN standing desks, with height presets, menu bar controls, activity estimates and optional standing reminders.","operatingSystem":"macOS 14 or later","applicationCategory":"UtilitiesApplication","author":{"@type":"Person","name":"Zdravko Curic","url":"https://github.com/zcuric"},"sameAs":"https://github.com/zcuric/idasen-macos","image":"https://zcuric.github.io/idasen-macos/assets/desk-macos.png","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
   </script>
 </head>
 <body>
@@ -32,14 +32,19 @@
     <h1 id="title">Your standing desk.<br>From your Mac.</h1>
     <div class="intro-copy"><p class="lede">A native macOS app for your IKEA IDÅSEN desk. Save your sitting and standing heights, change position from the menu bar, and see how your day adds up.</p><div class="actions"><a class="button" href="#install">Get Idasen</a><a href="#connect">Connect your desk</a></div><p class="small">macOS 14+ · Native Liquid Glass on macOS 26 and later</p></div>
   </section>
-  <figure><img src="assets/desk-development.png" width="1080" height="720" fetchpriority="high" alt="Idasen in demo mode at 73 centimetres, with Raise, Stop and Lower controls, Sit and Stand presets, and an exact-height slider"><figcaption>Desk controls in a development build. The current app also includes a grouped sidebar and today’s sitting and standing summary.</figcaption></figure>
+  <figure><img src="assets/desk-macos.png" width="1080" height="720" fetchpriority="high" alt="Idasen in demo mode at 73 centimetres, with Raise, Stop and Lower controls, Sit and Stand presets, and an exact-height slider"><figcaption>Idasen 1.1.1 in dark mode on macOS 27, connected to a simulated desk.</figcaption></figure>
   <section id="everyday" class="tour" aria-label="Everyday desk controls">
     <article><h2>A position for every part of the day.</h2><p>Save the heights that work for you. Mark a sitting preset and a standing preset, then switch between them with a click or keyboard shortcut.</p><p>For small adjustments, hold Raise or Lower, or use fine nudges. Releasing the control requests a stop.</p></article>
     <article><h3>Within reach, in the menu bar.</h3><p>A desk icon and live height sit beside your other Mac utilities. Open the menu for presets, movement controls, and today’s sitting and standing totals. Global shortcuts work while you use another app.</p></article>
     <article><h3>A reminder you choose.</h3><p>Opt into standing reminders, choose an interval, and snooze for ten minutes when you need more time. Track a daily standing goal in the dashboard. Time is estimated from desk height while connected; it does not measure whether you’re at your desk.</p></article>
   </section>
   <section id="install" class="install" aria-labelledby="install-title">
-    <div><h2 id="install-title">Make room for a different position.</h2><p>Download the Apple silicon app, or build Idasen on your Mac. The Apple silicon download is ad-hoc signed and has no Apple notarization.</p><div class="actions"><a class="button" href="https://github.com/zcuric/idasen-macos/releases/latest">Download for Mac</a></div></div>
+    <div>
+      <h2 id="install-title">Install Idasen.</h2>
+      <p>Open the disk image, drag <strong>Idasen</strong> into <strong>Applications</strong>, then open it from there.</p>
+      <div class="actions"><a class="button" href="https://github.com/zcuric/idasen-macos/releases/latest/download/Idasen-macOS-arm64.dmg">Download DMG</a><a href="https://github.com/zcuric/idasen-macos/releases/latest">ZIP and checksums</a></div>
+      <p class="small">Apple silicon · macOS 14 or later · Ad-hoc signed, without Apple notarization</p>
+    </div>
     <div class="install-body"><h3>Build from source</h3><p>Install Xcode 27 with its command-line tools, then run:</p><pre><code>git clone https://github.com/zcuric/idasen-macos.git
 cd idasen-macos
 make app
